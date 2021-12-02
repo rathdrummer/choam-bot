@@ -11,20 +11,32 @@ GUILD = os.getenv("GUILD")
 intents = discord.Intents().all()
 client = discord.Client(intents=intents)
 
-print(GUILD)
+test_channel = None
 
-@client.event
-async def on_ready():
-    print('Connected to Discord as',client.user)
-    print(client.guilds[0].name)
-    guild = discord.utils.get(client.guilds, name = GUILD)
-    print("Guild:",guild.name)
 
-@client.event
-async def on_message(message):
-    if message.content == "!fear":
+async def process_bot_command(message):
+    command = message.content[1:]
+    if command == "fear":
         response = "I must not fear. Fear is the mind-killer. Fear is the little-death that brings total obliteration. I will face my fear. I will permit it to pass over me and through me. And when it has gone past I will turn the inner eye to see its path. Where the fear has gone there will be nothing. Only I will remain."
         await message.channel.send(response)
 
+    elif command[0:3] == "say":
+        response = command[4:]
+        await message.channel.send("**"+response+"**")
+
+@client.event
+async def on_ready():
+    guild = discord.utils.get(client.guilds, name = GUILD)
+    print('Connected to',guild.name,'as',client.user)
+    # Print successful startup message
+    test_channel = discord.utils.get(guild.channels, name="choam-laboratory")
+    await test_channel.send("**CHOAM listings available for consultation.**")
+
+
+@client.event
+async def on_message(message):
+    if message.content[0] == "!":
+        print(message.content)
+        await process_bot_command(message)
 
 client.run(TOKEN)
