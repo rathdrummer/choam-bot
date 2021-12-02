@@ -25,8 +25,8 @@ async def process_bot_command(message):
         await message.channel.send("**"+response+"**")
 
     elif command == "version":
-        date = os.path.getmtime("bot.py")
-        await message.channel.send("**CHOAM Listings bot** by Pizza \n *Last updated "+time.ctime(date)+"*")
+        date = os.path.getmtime("/home/adam/choam-bot/bot.py")
+        await message.channel.send("**CHOAM Listings bot** by Pizza \n*Last updated: "+time.ctime(date)+"*")
 
 @client.event
 async def on_ready():
