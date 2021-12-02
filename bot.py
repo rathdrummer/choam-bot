@@ -23,7 +23,7 @@ async def process_bot_command(message):
 
     elif command[0:3] == "say":
         response = command[4:]
-        await message.channel.send("**"+response+"**")
+        await message.channel.send("**"+response+"** ;)")
 
     elif command == "version":
         date = os.path.getmtime("/home/adam/choam-bot/bot.py")
