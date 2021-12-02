@@ -1,4 +1,5 @@
 import os, time
+import requests
 import discord
 
 from dotenv import load_dotenv
@@ -27,6 +28,11 @@ async def process_bot_command(message):
     elif command == "version":
         date = os.path.getmtime("/home/adam/choam-bot/bot.py")
         await message.channel.send("**CHOAM Listings bot** by Pizza \n*Last updated: "+time.ctime(date)+"*")
+
+    elif command == "apicheck":
+        r=requests.get("https://sheetdb.io/api/v1/433vdzbr7zmrl/cells/A1")
+        await message.channel.send(r.json()['A1'])
+
 
 @client.event
 async def on_ready():
