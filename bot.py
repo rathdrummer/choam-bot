@@ -79,7 +79,7 @@ async def on_ready():
     print('Connected to',guild.name,'as',client.user)
     # Print successful startup message
     #debug_channel = discord.utils.get(guild.channels, name="choam-laboratory")
-    #await debug_channel.send("**CHOAM listings available for consultation.**")
+    await debug_channel.send("**CHOAM listings available for consultation.**")
 
 
 @client.event
