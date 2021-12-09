@@ -12,7 +12,9 @@ GUILD = os.getenv("GUILD")
 intents = discord.Intents().all()
 client = discord.Client(intents=intents)
 
-test_channel = None
+debug_channel = "choam-laboratory"
+STATS = ["Industry", "Technology", "Economy", "Military", "Espionage", "Black Market", "Propaganda", "Honour", "Devotion", "Mentat", "Truthsayer", "Wpn Master"]
+
 
 
 async def process_bot_command(message):
@@ -33,14 +35,51 @@ async def process_bot_command(message):
         r=requests.get("https://sheetdb.io/api/v1/433vdzbr7zmrl/cells/A1")
         await message.channel.send(r.json()['A1'])
 
+    elif command[0:5] == "sheet":
+        cont=True
+
+
+        if " " in command: #unique GM request
+            house = command.split(" ", 1)[1]
+            r=requests.get("https://sheetdb.io/api/v1/433vdzbr7zmrl/search?house="+house+"&sheet=HouseStats")
+            if len(r.json())==0:
+                await message.channel.send("No entries found under House "+house+".")
+                cont=False
+            data=r.json()[0]
+            if not ("gm-chat" in message.channel.name and data["house"].lower() in message.channel.category.name.lower()) or message.channel.name == debug_channel:
+                await message.channel.send("*We request that this communication take place across a more secure channel. Thank you for your understanding.*")
+                cont=False
+
+
+        else: #personal channel request
+            r=requests.get("https://sheetdb.io/api/v1/433vdzbr7zmrl/search?user="+message.author.name+"&sheet=HouseStats")
+
+            if len(r.json())==0:
+                await message.channel.send("*No entries found for user "+message.author.name+".*")
+                cont=False
+            data=r.json()[0]
+            print(data["house"])
+            print(message.channel.category.name)
+            if not ("gm-chat" in message.channel.name and data["house"].lower() in message.channel.category.name.lower()):
+                await message.channel.send("*We request that this communication take place across a more secure channel. Thank you for your understanding.*")
+                cont=False
+
+
+        if cont:
+            output = "**House "+data["house"]+"**\n--------"
+            for stat in STATS:
+                output = output+"\n*"+stat+":* **"+data[stat]+"**"
+                if stat=="Devotion":
+                    output = output+"\n--------"
+            await message.channel.send(output)
 
 @client.event
 async def on_ready():
     guild = discord.utils.get(client.guilds, name = GUILD)
     print('Connected to',guild.name,'as',client.user)
     # Print successful startup message
-    test_channel = discord.utils.get(guild.channels, name="choam-laboratory")
-    await test_channel.send("**CHOAM listings available for consultation.**")
+    #debug_channel = discord.utils.get(guild.channels, name="choam-laboratory")
+    #await debug_channel.send("**CHOAM listings available for consultation.**")
 
 
 @client.event
