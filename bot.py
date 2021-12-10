@@ -120,7 +120,7 @@ async def process_bot_command(message):
                     if data[stat+"1"]!="":
                         stat_str_1 = fillout(stat+": "+signed_str(data[stat+"1"]),19)+"|   "
                     if data[stat+"2"]!="":
-                        stat_str_2 = stat+": "+data[stat+"2"]
+                        stat_str_2 = stat+": "+signed_str(data[stat+"2"])
                     if stat_str_1 != "" or stat_str_2 != "":
                         reply = reply+"\n"+stat_str_1+stat_str_2
                 reply += "\n\n" + data["notes"] + " (ID:"+data["id"]+")```"
