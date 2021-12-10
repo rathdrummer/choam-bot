@@ -21,6 +21,12 @@ debug_channel = None
 STATS = ["Industry", "Technology", "Economy", "Military", "Espionage", "Black Market", "Propaganda", "Honour", "Devotion", "Mentat", "Truthsayer", "Wpn Master"]
 SKILLS = ["Industry", "Technology", "Economy", "Military", "Espionage", "Black Market", "Propaganda", "Honour", "Devotion"]
 
+def signed_str(str):
+    if int(str)<0:
+        return str
+    else:
+        return "+"+str
+
 def fillout(str, length):
     if len(str)>length:
         return str[:length]
@@ -104,7 +110,7 @@ async def process_bot_command(message):
         r=requests.get("https://sheetdb.io/api/v1/sllgumbz286o7?sheet=trades")
         tradesFound=False
         for data in r.json():
-            if data["active"]!="FALSE":# and house in [data["house1"], data["house2"]]:
+            if data["active"]!="FALSE" and data["house1"]!="":# and house in [data["house1"], data["house2"]]:
                 tradesFound=True
                 reply = "```"
                 reply += fillout("House "+data["house1"],19)+"🤝  "+"House "+data["house2"]+"\n"+("-"*38)
@@ -112,12 +118,12 @@ async def process_bot_command(message):
                 for stat in SKILLS:
                     stat_str_1 = stat_str_2 = ""
                     if data[stat+"1"]!="":
-                        stat_str_1 = fillout(stat+": "+data[stat+"1"],19)+"|   "
+                        stat_str_1 = fillout(stat+": "+signed_str(data[stat+"1"]),19)+"|   "
                     if data[stat+"2"]!="":
                         stat_str_2 = stat+": "+data[stat+"2"]
                     if stat_str_1 != "" or stat_str_2 != "":
                         reply = reply+"\n"+stat_str_1+stat_str_2
-                reply += "\n\n" + data["notes"] + "(ID: "+data["id"]+")```"
+                reply += "\n\n" + data["notes"] + " (ID:"+data["id"]+")```"
                 await message.channel.send(reply)
 
         if not tradesFound:
