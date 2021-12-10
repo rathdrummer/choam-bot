@@ -123,7 +123,7 @@ async def process_bot_command(message):
         if not tradesFound:
             await message.channel.send("*No trade records currently available.*")
 
-    elif command == "help"
+    elif command == "help":
         reply = "***At your service, my lord. Here are some of the services the Combine Honnete Ober Advancer Mercantiles can provide:***\n"
         reply += "`!sheet` - *View the abilities of your House (over a secure channel, of course).*\n"
         reply += "`!trades` - *Request all ongoing trade listings available for viewing.*\n"
