@@ -47,10 +47,6 @@ async def process_bot_command(message):
         date = os.path.getmtime(os.path.realpath(__file__))
         await message.channel.send("**CHOAM Listings bot** by Pizza \n*Last updated: "+time.ctime(date)+"*")
 
-    elif command == "apicheck":
-        r=requests.get("https://sheetdb.io/api/v1/433vdzbr7zmrl/cells/A1")
-        await message.channel.send(r.json()['A1'])
-
     ### CHARACTER SHEET DISPLAY ###
     elif command[0:5] == "sheet":
         cont=True
@@ -121,15 +117,22 @@ async def process_bot_command(message):
                         stat_str_2 = stat+": "+data[stat+"2"]
                     if stat_str_1 != "" or stat_str_2 != "":
                         reply = reply+"\n"+stat_str_1+stat_str_2
-                reply += "\n\n" + data["notes"] + "\n"
-                reply += "ID: ["+data["id"]+"]```"
+                reply += "\n\n" + data["notes"] + "(ID: "+data["id"]+")```"
                 await message.channel.send(reply)
 
         if not tradesFound:
             await message.channel.send("*No trade records currently available.*")
 
+    elif command == "help"
+        reply = "***At your service, my lord. Here are some of the services the Combine Honnete Ober Advancer Mercantiles can provide:***\n"
+        reply += "`!sheet` - *View the abilities of your House (over a secure channel, of course).*\n"
+        reply += "`!trades` - *Request all ongoing trade listings available for viewing.*\n"
+        reply += "`!fear` - *Lest you require reassurance.*\n"
+        await message.channel.send(reply)
+
     else:
         await message.channel.send("*Request* `"+command+"` *not understood. Our sincerest apologies.*")
+
 
 @client.event
 async def on_ready():
