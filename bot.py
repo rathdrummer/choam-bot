@@ -20,12 +20,13 @@ debug_channel = None
 
 STATS = ["Industry", "Technology", "Economy", "Military", "Espionage", "Black Market", "Propaganda", "Honour", "Devotion", "Mentat", "Truthsayer", "Wpn Master"]
 SKILLS = ["Industry", "Technology", "Economy", "Military", "Espionage", "Black Market", "Propaganda", "Honour", "Devotion"]
+HOUSES = ["Test_House_A", "Test_House_R", "Agar", "Agnesborne", "Cidae", "Danu", "Destrym", "Feurok", "Glandriff", "Khalkes", "Lambdamus", "Sonnendrang", "Succulent", "Sykes", "Taloi", "Volkov", "Von Torridt", "Hellion"]
 
-def signed_str(str):
-    if int(str)<0:
-        return str
+def signed_str(string):
+    if int(string)<0:
+        return str(string)
     else:
-        return "+"+str
+        return "+"+str(string)
 
 def fillout(str, length):
     if len(str)>length:
@@ -128,6 +129,135 @@ async def process_bot_command(message):
 
         if not tradesFound:
             await message.channel.send("*No trade records currently available.*")
+
+    elif command[:8] == "newtrade":
+            error=""
+
+            if " " not in command:
+                error = "*Please consult the attached guide for submitting trade proposals.*\n"
+                error += "*Usage:* `!newtrade house1 skill1 modifier1 [...] house2 skill2 [...] notes`\n"
+                error += "*Example: `!newtrade Atreides Industry +1 economy -1 Ginaz economy +1 industry -1 Atreides buying Ginaz farmers`*"
+                await message.channel.send(error)
+                return
+
+            cmd = command.replace("Black Market","BlackMarket").replace("Von Torridt","VonTorridt")
+            cmd_list = cmd.split(" ")[1:]
+            new_cmd_list = [item.replace("BlackMarket","Black Market").replace("VonTorridt","Von Torridt") for item in cmd_list]
+
+            first_house_selected = True
+            stat_name = True
+            data = {"house1":"", "house2":""}
+            for s in SKILLS:
+                data[s+"1"]=""
+                data[s+"2"]=""
+            current_stat = ""
+            house2_logged_a_stat = False
+            getting_notes = False
+            data["notes"] = ""
+
+            for item in new_cmd_list:
+                if not getting_notes:
+                    item = item.title()
+                    if first_house_selected:
+                        if data["house1"] == "":
+                            if item not in HOUSES:
+                                error = "`"+item+"` is not a House we recognise."
+                                break
+                            data["house1"] = item
+                            continue
+                        elif stat_name:
+                            if item in SKILLS:
+                                current_stat = item
+                                stat_name=False
+                                continue
+                            else:
+                                first_house_selected = False
+                                if item not in HOUSES:
+                                    error = "`"+item+"` is not a House or trade quality we recognise."
+                                    break
+                                data["house2"] = item
+                                continue
+                        elif not stat_name:
+                            try:
+                                int(item)
+                            except ValueError:
+                                error = "You want to increase `"+current_stat+"` by `"+item+"`?"
+                                break
+                            data[current_stat+"1"] = int(item)
+                            current_stat = ""
+                            stat_name=True
+                            continue
+                    else: #second house data now
+                        if stat_name:
+                            if item in SKILLS:
+                                current_stat = item
+                                stat_name=False
+                                continue
+                            elif house2_logged_a_stat:
+                                getting_notes=True
+                                data["notes"] += item
+                                continue
+                            else:
+                                error = "`"+item+"` is not a trade quality we know of."
+                                break
+                        else:
+                            try:
+                                int(item)
+                            except ValueError:
+                                error = "You want to change "+current_stat+" by `"+item+"`?"
+                                break
+                            data[current_stat+"2"] = int(item)
+                            house2_logged_a_stat=True
+                            stat_name=True
+                            current_stat = ""
+                else: #getting_notes
+                    data["notes"] += " "+item
+
+            if error == "":
+                if data["house2"] == "":
+                    error="Who is it you are arranging this trade deal with? "
+                elif data["notes"] == "":
+                    error = "We are struggling to understand the details of this trade proposal, please provide some notes."
+                else:
+                    authorhouse=""
+                    for r in message.author.roles:
+                        if "House" in r.name:
+                            authorhouse = r.name.split(" ",1)[1]
+                        elif "GM" in r.name:
+                            authorhouse = "GM"
+
+                    if authorhouse not in [data["house1"],data["house2"],"GM"]:
+                        error="You do not have permission to arrange a trade on behalf of another."
+
+
+            if error != "":
+                reply = "*Apologies, there was an issue with your trade proposal. "+error.replace("*","")+"*\n"
+                #reply += "*Use:* `!newtrade house1 skill1 modifier1 [...] house2 skill2 [...] notes`"
+                reply += "*Example use: `!newtrade Atreides Industry +1 economy -1 Ginaz economy +1 industry -1 Atreides buying Ginaz farmers`*"
+            else:
+                reply = "*Your trade proposal has been logged:* \n```"
+                reply += fillout("House "+data["house1"],19)+"🤝  "+"House "+data["house2"]+"\n"+("-"*38)
+                for stat in SKILLS:
+                    stat_str_1 = stat_str_2 = ""
+                    if data[stat+"1"]!="":
+                        stat_str_1 = fillout(stat+": "+signed_str(data[stat+"1"]),19)
+                    if data[stat+"2"]!="":
+                        stat_str_2 = stat+": "+signed_str(data[stat+"2"])
+                    if stat_str_1 != "" or stat_str_2 != "":
+                        reply = reply+"\n"+fillout(stat_str_1,19)+"|   "+stat_str_2
+                reply += "\n\nNotes: "+data["notes"]+"```"
+                reply += "*Please await CHOAM approval for this trade to be enacted. Thank you for your patronage.* \n<@&908129170029154406>"
+
+                url = "https://sheetdb.io/api/v1/sllgumbz286o7?sheet=trades"
+                data["id"]="INCREMENT"
+                data["approved"] = "FALSE"
+                data["active"] = "FALSE"
+                data["expiry"] = ""
+                d = data
+                x=requests.post(url, data=d)
+
+            await message.channel.send(reply)
+
 
     elif command == "stilgar":
         await message.channel.send("https://youtu.be/l_kvakUCIYc")
